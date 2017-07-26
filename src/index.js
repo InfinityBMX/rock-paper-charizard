@@ -92,7 +92,11 @@ var handlers = {
 
 function buildReportForType(type, output) {
   const {name, strong, weak, resistant, vulnerable} = type;
-  let strongMessage, weakMessage, resistantMessage, vulnerableMessage = '';
+  let strongMessage = '';
+  let weakMessage = '';
+  let resistantMessage = '';
+  let vulnerableMessage = '';
+  
   if(!output || output.strong)
     strongMessage = buildMessageForAttribute(strong, 'strong', name);
 
