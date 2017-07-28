@@ -19,51 +19,71 @@ var handlers = {
     this.emit(':ask', speechOutput, repromptSpeech);
   },
   'TypeInfoIntent': function () {
-    // Get the variable passed if available
     const typeSlot = this.event.request.intent.slots.type;
-    let typeName;
-    let type;
-    if (typeSlot && typeSlot.value) {
-      typeName = typeSlot.value.toLowerCase();
-      type = info.types[typeName];
-    }
+    const output = {
+      strong: true,
+      weak: true,
+      resistant: true,
+      vulnerable: true
+    };
+    const result = processForTypeAndOutput(typeSlot, output);
 
-    if (type) {
-      const cardTitle = type.name;
-      const output = {
-        strong: true,
-        weak: true,
-        resistant: true,
-        vulnerable: true
-      };
-      const speechOutput = buildReportForType(type, output);
-      this.emit(':tellWithCard', speechOutput, cardTitle, speechOutput);
+    if (result.typeFound) {
+      this.emit(':tellWithCard', result.speechOutput, result.cardTitle, result.cardOutput);
     } else {
-      const speechOutput = messages.TYPE_NOT_FOUND_MESSAGE;
-      const repromptSpeech = messages.TYPE_NOT_FOUND_REPROMPT;
-      this.emit(':ask', speechOutput, repromptSpeech);
+      this.emit(':ask', result.speechOutput, result.repromptSpeech);
     }
   },
   'TypeStrengthIntent': function () {
     const typeSlot = this.event.request.intent.slots.type;
-    let typeName;
-    let type;
-    if (typeSlot && typeSlot.value) {
-      typeName = typeSlot.value.toLowerCase();
-      type = info.types[typeName];
-    }
+    const output = {
+      strong: true
+    };
+    const result = processForTypeAndOutput(typeSlot, output);
 
-    if (type) {
-      const cardTitle = type.name;
-      const output = {
-        strong: true
-      };
-      const speechOutput = buildReportForType(type, output);
-      this.emit(':tellWithCard', speechOutput, cardTitle, speechOutput);
+    if (result.typeFound) {
+      this.emit(':tellWithCard', result.speechOutput, result.cardTitle, result.cardOutput);
     } else {
-      const speechOutput = messages.TYPE_NOT_FOUND_MESSAGE;
-      const repromptSpeech = messages.TYPE_NOT_FOUND_REPROMPT;
-      this.emit(':ask', speechOutput, repromptSpeech);
+      this.emit(':ask', result.speechOutput, result.repromptSpeech);
+    }
+  },
+  'TypeWeakIntent': function () {
+    const typeSlot = this.event.request.intent.slots.type;
+    const output = {
+      weak: true
+    };
+    const result = processForTypeAndOutput(typeSlot, output);
+
+    if (result.typeFound) {
+      this.emit(':tellWithCard', result.speechOutput, result.cardTitle, result.cardOutput);
+    } else {
+      this.emit(':ask', result.speechOutput, result.repromptSpeech);
+    }
+  },
+  'TypeResistantIntent': function () {
+    const typeSlot = this.event.request.intent.slots.type;
+    const output = {
+      resistant: true
+    };
+    const result = processForTypeAndOutput(typeSlot, output);
+
+    if (result.typeFound) {
+      this.emit(':tellWithCard', result.speechOutput, result.cardTitle, result.cardOutput);
+    } else {
+      this.emit(':ask', result.speechOutput, result.repromptSpeech);
+    }
+  },
+  'TypeVulnerableIntent': function () {
+    const typeSlot = this.event.request.intent.slots.type;
+    const output = {
+      vulnerable: true
+    };
+    const result = processForTypeAndOutput(typeSlot, output);
+
+    if (result.typeFound) {
+      this.emit(':tellWithCard', result.speechOutput, result.cardTitle, result.cardOutput);
+    } else {
+      this.emit(':ask', result.speechOutput, result.repromptSpeech);
     }
   },
   'AMAZON.HelpIntent': function () {
@@ -90,13 +110,39 @@ var handlers = {
   }
 };
 
+function processForTypeAndOutput(typeSlot, output) {
+  let typeName;
+  let type;
+  if (typeSlot && typeSlot.value) {
+    typeName = typeSlot.value.toLowerCase();
+    type = info.types[typeName];
+  }
+
+  if (type) {
+    const cardTitle = type.name;
+    const speechOutput = buildReportForType(type, output);
+    return {
+      typeFound: true,
+      cardTitle: cardTitle,
+      speechOutput: speechOutput,
+      cardOutput: speechOutput
+    };
+  } else {
+    return {
+      typeFound: false,
+      speechOutput: messages.TYPE_NOT_FOUND_MESSAGE,
+      repromptSpeech: messages.TYPE_NOT_FOUND_REPROMPT
+    };
+  }
+}
+
 function buildReportForType(type, output) {
   const {name, strong, weak, resistant, vulnerable} = type;
   let strongMessage = '';
   let weakMessage = '';
   let resistantMessage = '';
   let vulnerableMessage = '';
-  
+
   if(!output || output.strong)
     strongMessage = buildMessageForAttribute(strong, 'strong', name);
 
