@@ -12,7 +12,7 @@ exports.handler = function(event, context, callback) {
   alexa.execute();
 };
 
-var handlers = {
+const handlers = {
   'LaunchRequest': function () {
     const speechOutput = messages.WELCOME_MESSAGE;
     const repromptSpeech = messages.WELCOME_REPROMPT;
@@ -144,24 +144,44 @@ function buildReportForType(type, output) {
   let vulnerableMessage = '';
 
   if(!output || output.strong)
-    strongMessage = buildMessageForAttribute(strong, 'strong', name);
+    strongMessage = buildMessage({
+      list: strong,
+      attribute: 'strong',
+      type: name,
+      preposition: 'against'
+    });
 
   if(!output || output.weak)
-    weakMessage = buildMessageForAttribute(weak, 'weak', name);
+    weakMessage = buildMessage({
+      list: weak,
+      attribute: 'weak',
+      type: name,
+      preposition: 'against'
+    });
 
   if(!output || output.resistant)
-    resistantMessage = buildMessageForAttribute(resistant, 'resistant', name);
+    resistantMessage = buildMessage({
+      list: resistant,
+      attribute: 'resistant',
+      type: name,
+      preposition: 'to'
+    });
 
   if(!output  || output.vulnerable)
-    vulnerableMessage = buildMessageForAttribute(vulnerable, 'vulnerable', name);
+    vulnerableMessage = buildMessage({
+      list: vulnerable,
+      attribute: 'vulnerable',
+      type: name,
+      preposition: 'to'
+    });
 
   return `${strongMessage} ${weakMessage} ${resistantMessage} ${vulnerableMessage}`;
 }
 
-function buildMessageForAttribute(itemList, attribute, typeName){
-  if(itemList.length ===0){
-    return `${typeName} is not ${attribute} against any types.`;
+function buildMessage(info){
+  if(info.list.length ===0){
+    return `${info.type} is not ${info.attribute} ${info.preposition} any types.`;
   } else {
-    return `${typeName} is ${attribute} against ${itemList.join(", ")}.`;
+    return `${info.type} is ${info.attribute} ${info.preposition} ${info.list.join(", ")}.`;
   }
 }
